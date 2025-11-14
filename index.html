@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<meta name="theme-color" content="#0b1220"/>
+<title>🌤️ Tiempo en Madrid - Puntos Específicos</title>
+
+<style>
+:root{
+  --bg:#0b1220; --panel:#121a2b; --muted:#8590a3; --text:#e9eef7;
+  --accent:#6ae3ff; --accent2:#7af0c1; --line:#2a3550; --chip:#1b2440;
+  --good:#2dd4bf; --warn:#fbbf24;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:linear-gradient(180deg,#0a1020 0%, #0c1430 100%);
+  color:var(--text);
+  font-family:ui-sans-serif,system-ui,'Segoe UI',Roboto,Inter,Arial;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+button, input {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+header{
+  padding:16px 20px;
+  border-bottom:1px solid #152040;
+  background:rgba(10,16,32,.95);
+  backdrop-filter:blur(8px);
+  position:sticky;
+  top:0;
+  z-index:100;
+}
+
+header h1{
+  font-size:20px;
+  margin:0;
+  font-weight:700;
+  letter-spacing:.3px;
+}
+
+.subtitle{
+  font-size:13px;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+.time-selector{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  padding:16px 20px;
+  background:#0f1830;
+  border-bottom:1px solid #223064;
+  flex-wrap:wrap;
+}
+
+.time-btn{
+  padding:10px 20px;
+  border:2px solid #223064;
+  border-radius:10px;
+  background:#162248;
+  color:var(--text);
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  transition:all .2s;
+  min-width:100px;
+}
+
+.time-btn:hover{
+  background:#1f2a4a;
+  border-color:#2a4073;
+  transform:translateY(-2px);
+}
+
+.time-btn.active{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#021022;
+  border-color:var(--accent);
+  box-shadow:0 4px 12px rgba(70,200,255,.35);
+}
+
+.container{
+  max-width:1400px;
+  margin:0 auto;
+  padding:20px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));
+  gap:20px;
+}
+
+@media(min-width:768px){
+  .grid{
+    grid-template-columns:repeat(2, 1fr);
+  }
+}
+
+@media(min-width:1200px){
+  .grid{
+    grid-template-columns:repeat(3, 1fr);
+  }
+}
+
+.card{
+  background:linear-gradient(180deg,#0f1830 0%,#0d1630 100%);
+  border:1px solid #162248;
+  border-radius:18px;
+  box-shadow:0 6px 24px rgba(2,8,35,.35);
+  overflow:hidden;
+  transition:transform .3s, box-shadow .3s;
+}
+
+.card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 12px 32px rgba(2,8,35,.5);
+}
+
+.card-header{
+  padding:16px 18px;
+  background:linear-gradient(135deg, #162248, #1a2850);
+  border-bottom:1px solid #223064;
+}
+
+.location-name{
+  font-size:16px;
+  font-weight:700;
+  color:#6ae3ff;
+  margin:0 0 4px 0;
+}
+
+.current-time{
+  font-size:12px;
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.card-body{
+  padding:18px;
+}
+
+.loading{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  color:var(--muted);
+  font-size:14px;
+  padding:40px 20px;
+}
+
+.spinner{
+  width:20px;
+  height:20px;
+  border:3px solid #2a3550;
+  border-top:3px solid var(--accent);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+  0%{transform:rotate(0deg)}
+  100%{transform:rotate(360deg)}
+}
+
+.weather-main{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin-bottom:16px;
+}
+
+.weather-icon{
+  font-size:56px;
+  line-height:1;
+}
+
+.weather-info{
+  flex:1;
+}
+
+.weather-desc{
+  font-size:16px;
+  font-weight:600;
+  color:#d9f5ff;
+  margin:0 0 6px 0;
+}
+
+.thermal-badge{
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:6px;
+  font-size:11px;
+  font-weight:700;
+  color:#ffffff;
+  margin-top:4px;
+}
+
+.temp-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:10px;
+  margin-bottom:16px;
+}
+
+.temp-box{
+  background:#0a1328;
+  border:1px solid #182a5a;
+  border-radius:10px;
+  padding:12px;
+  text-align:center;
+}
+
+.temp-label{
+  font-size:10px;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+
+.temp-value{
+  font-size:22px;
+  font-weight:700;
+  color:#6ae3ff;
+}
+
+.temp-value.feels{
+  color:#2dd4bf;
+}
+
+.temp-value.rain{
+  color:#fbbf24;
+}
+
+.details-grid{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:8px;
+  margin-bottom:16px;
+}
+
+.detail-item{
+  background:#0f1830;
+  padding:10px 8px;
+  border-radius:8px;
+  text-align:center;
+}
+
+.detail-label{
+  font-size:9px;
+  color:var(--muted);
+  margin-bottom:4px;
+}
+
+.detail-value{
+  font-size:13px;
+  font-weight:600;
+  color:#6ae3ff;
+}
+
+.action-buttons{
+  display:flex;
+  gap:8px;
+}
+
+.btn{
+  flex:1;
+  padding:12px;
+  border:0;
+  border-radius:10px;
+  font-weight:700;
+  font-size:13px;
+  cursor:pointer;
+  transition:all .2s;
+}
+
+.btn-primary{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#021022;
+  box-shadow:0 4px 12px rgba(70,200,255,.25);
+}
+
+.btn-primary:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 16px rgba(70,200,255,.35);
+}
+
+.btn-secondary{
+  background:#162248;
+  color:var(--text);
+  border:1px solid #223064;
+}
+
+.btn-secondary:hover{
+  background:#1f2a4a;
+  border-color:#2a4073;
+}
+
+.btn:active{
+  transform:translateY(0);
+}
+
+.btn:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+
+.error-message{
+  background:#2d1b1b;
+  border:1px solid #5a2d2d;
+  border-radius:10px;
+  color:#ff9999;
+  padding:16px;
+  text-align:center;
+  font-size:13px;
+}
+
+.forecast-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  background:rgba(8,12,24,.92);
+  backdrop-filter:blur(8px);
+  z-index:1000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  animation:fadeIn .3s;
+}
+
+@keyframes fadeIn{
+  from{opacity:0}
+  to{opacity:1}
+}
+
+.forecast-modal{
+  background:linear-gradient(180deg,#0f1830 0%,#0d1630 100%);
+  border:2px solid #223064;
+  border-radius:20px;
+  max-width:500px;
+  width:100%;
+  max-height:90vh;
+  overflow-y:auto;
+  box-shadow:0 20px 60px rgba(2,8,35,.7);
+  animation:slideUp .3s;
+}
+
+@keyframes slideUp{
+  from{transform:translateY(30px);opacity:0}
+  to{transform:translateY(0);opacity:1}
+}
+
+.forecast-header{
+  padding:20px;
+  border-bottom:1px solid #223064;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:sticky;
+  top:0;
+  background:#0f1830;
+  z-index:10;
+}
+
+.forecast-title{
+  font-size:18px;
+  font-weight:700;
+  color:#6ae3ff;
+  margin:0;
+}
+
+.close-btn{
+  background:#162248;
+  border:1px solid #223064;
+  color:var(--text);
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  cursor:pointer;
+  font-size:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all .2s;
+}
+
+.close-btn:hover{
+  background:#1f2a4a;
+  transform:rotate(90deg);
+}
+
+.forecast-body{
+  padding:20px;
+}
+
+@supports(padding:max(0px)){
+  body{
+    padding-left:env(safe-area-inset-left);
+    padding-right:env(safe-area-inset-right);
+  }
+}
+</style>
+</head>
+
+<body>
+  <header>
+    <h1>🌤️ Tiempo en Madrid - Puntos Específicos</h1>
+    <div class="subtitle" id="currentDateTime">Cargando...</div>
+  </header>
+
+  <div class="time-selector" id="timeSelector">
+    <button class="time-btn active" onclick="changeTimeView('now')">🕐 Ahora</button>
+    <button class="time-btn" onclick="changeTimeView('09:00')">🌅 9:00</button>
+    <button class="time-btn" onclick="changeTimeView('15:00')">☀️ 15:00</button>
+    <button class="time-btn" onclick="changeTimeView('21:00')">🌙 21:00</button>
+  </div>
+
+  <div class="container">
+    <div class="grid" id="weatherGrid"></div>
+  </div>
+
+  <div id="forecastOverlay" style="display:none"></div>
+
+<script>
+/* ========== UBICACIONES PREDEFINIDAS ========== */
+const LOCATIONS = [
+  { name: 'Calle de San Rogelio', address: 'Calle de San Rogelio, Madrid', lat: 40.4496, lon: -3.6978 },
+  { name: 'Bravo Murillo, 110', address: 'Calle de Bravo Murillo, 110, Madrid', lat: 40.4479, lon: -3.7006 },
+  { name: 'José Abascal con Bravo Murillo', address: 'José Abascal con Bravo Murillo, Madrid', lat: 40.4442, lon: -3.6983 },
+  { name: 'Glorieta de Quevedo', address: 'Glorieta de Quevedo, Madrid', lat: 40.4283, lon: -3.7053 },
+  { name: 'Metro San Bernardo', address: 'Metro San Bernardo, Madrid', lat: 40.4261, lon: -3.7086 },
+  { name: 'IES Lope de Vega', address: 'IES Lope de Vega, Calle de San Bernardo, Madrid', lat: 40.4269, lon: -3.7074 }
+];
+
+/* ========== FUNCIONES DE SENSACIÓN TÉRMICA ========== */
+function getThermalComment(feelsLikeTemp) {
+  if (feelsLikeTemp < 0) {
+    return { text: 'MUY FRÍO', color: '#1e3a8a' };
+  } else if (feelsLikeTemp >= 0 && feelsLikeTemp < 10) {
+    return { text: 'FRÍO', color: '#3b82f6' };
+  } else if (feelsLikeTemp >= 10 && feelsLikeTemp < 15) {
+    return { text: 'FRESCO', color: '#06b6d4' };
+  } else if (feelsLikeTemp >= 15 && feelsLikeTemp < 24) {
+    return { text: 'AGRADABLE', color: '#eab308' };
+  } else if (feelsLikeTemp >= 24 && feelsLikeTemp <= 30) {
+    return { text: 'CALOR', color: '#ea580c' };
+  } else {
+    return { text: 'MUCHO CALOR', color: '#dc2626' };
+  }
+}
+
+/* ========== CÓDIGOS METEOROLÓGICOS ========== */
+function weatherDesc(code){
+  const map = {
+    0:'Despejado',1:'Mayormente despejado',2:'Parcialmente nublado',3:'Nublado',
+    45:'Niebla',48:'Niebla con escarcha',51:'Llovizna ligera',53:'Llovizna moderada',55:'Llovizna intensa',
+    56:'Llovizna helada ligera',57:'Llovizna helada intensa',
+    61:'Lluvia ligera',63:'Lluvia moderada',65:'Lluvia intensa',
+    66:'Lluvia helada ligera',67:'Lluvia helada intensa',
+    71:'Nieve ligera',73:'Nieve moderada',75:'Nieve intensa',
+    77:'Granizo',80:'Chubascos ligeros',81:'Chubascos moderados',82:'Chubascos intensos',
+    85:'Chubascos de nieve ligeros',86:'Chubascos de nieve intensos',
+    95:'Tormenta',96:'Tormenta con granizo ligero',99:'Tormenta con granizo intenso'
+  };
+  return map[code] || 'Condición desconocida';
+}
+
+function weatherIcon(code){
+  const map = {
+    0:'☀️',1:'🌤️',2:'⛅',3:'☁️',
+    45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',
+    56:'🌨️',57:'🌨️',61:'🌧️',63:'🌧️',65:'🌧️',
+    66:'🌨️',67:'🌨️',71:'🌨️',73:'❄️',75:'❄️',
+    77:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',
+    85:'🌨️',86:'❄️',95:'⛈️',96:'⛈️',99:'⛈️'
+  };
+  return map[code] || '🌤️';
+}
+
+/* ========== FETCH WEATHER DATA ========== */
+async function fetchWeatherData(lat, lon, targetDate) {
+  const startDate = new Date(targetDate);
+  startDate.setHours(0, 0, 0, 0);
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + 3);
+  
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation_probability,precipitation,pressure_msl,wind_speed_10m,wind_direction_10m,visibility,weather_code,uv_index&start_date=${toYMD(startDate)}&end_date=${toYMD(endDate)}&timezone=auto`;
+  
+  const res = await fetch(url);
+  if(!res.ok) throw new Error(`Error de Open-Meteo ${res.status}`);
+  const data = await res.json();
+  if(!data.hourly?.time?.length) throw new Error('Sin datos meteorológicos');
+  
+  const idx = closestIndex(data.hourly.time, targetDate);
+  const h = data.hourly;
+  
+  return {
+    time: h.time[idx],
+    temperature: h.temperature_2m[idx],
+    feelsLike: h.apparent_temperature[idx],
+    humidity: h.relative_humidity_2m[idx],
+    precipitationProbability: h.precipitation_probability[idx],
+    precipitation: h.precipitation[idx] ?? null,
+    pressure: h.pressure_msl[idx],
+    windSpeed: h.wind_speed_10m[idx],
+    windDirection: h.wind_direction_10m[idx],
+    visibility: h.visibility[idx] / 1000,
+    uvIndex: h.uv_index[idx] ?? null,
+    weatherCode: h.weather_code[idx],
+    description: weatherDesc(h.weather_code[idx]),
+    icon: weatherIcon(h.weather_code[idx])
+  };
+}
+
+function toYMD(d){
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+
+function closestIndex(arr, target){
+  const t = new Date(target).getTime();
+  return arr.reduce((best, i, idx) => 
+    Math.abs(new Date(i).getTime() - t) < Math.abs(new Date(arr[best]).getTime() - t) ? idx : best, 0
+  );
+}
+
+/* ========== CHANGE TIME VIEW ========== */
+let currentTimeView = 'now';
+
+window.changeTimeView = async function(timeView) {
+  currentTimeView = timeView;
+  
+  // Actualizar botones activos
+  document.querySelectorAll('.time-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+  
+  // Determinar la fecha/hora objetivo
+  let targetDate = new Date();
+  if (timeView !== 'now') {
+    const [hour, minute] = timeView.split(':').map(Number);
+    targetDate.setHours(hour, minute, 0, 0);
+  }
+  
+  await loadWeatherData(targetDate);
+};
+
+/* ========== RENDER WEATHER CARD ========== */
+function renderWeatherCard(location, weather, displayDate) {
+  const thermal = getThermalComment(weather.feelsLike);
+  const timeStr = displayDate.toLocaleString('es-ES', {
+    hour: '2-digit',
+    minute: '2-digit',
+    weekday: 'short',
+    day: '2-digit',
+    month: '2-digit'
+  });
+  
+  return `
+    <div class="card">
+      <div class="card-header">
+        <h2 class="location-name">📍 ${location.name}</h2>
+        <div class="current-time">🕒 ${timeStr}</div>
+      </div>
+      <div class="card-body">
+        <div class="weather-main">
+          <div class="weather-icon">${weather.icon}</div>
+          <div class="weather-info">
+            <p class="weather-desc">${weather.description}</p>
+            <span class="thermal-badge" style="background:${thermal.color}">${thermal.text}</span>
+          </div>
+        </div>
+        
+        <div class="temp-grid">
+          <div class="temp-box">
+            <div class="temp-label">Temp</div>
+            <div class="temp-value">${weather.temperature}°</div>
+          </div>
+          <div class="temp-box">
+            <div class="temp-label">Sensación</div>
+            <div class="temp-value feels">${weather.feelsLike}°</div>
+          </div>
+          <div class="temp-box">
+            <div class="temp-label">Lluvia</div>
+            <div class="temp-value rain">${weather.precipitationProbability}%</div>
+          </div>
+        </div>
+        
+        <div class="details-grid">
+          <div class="detail-item">
+            <div class="detail-label">Humedad</div>
+            <div class="detail-value">${weather.humidity}%</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Viento</div>
+            <div class="detail-value">${weather.windSpeed} km/h</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Presión</div>
+            <div class="detail-value">${weather.pressure} hPa</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">UV</div>
+            <div class="detail-value">${weather.uvIndex ?? 'N/A'}</div>
+          </div>
+        </div>
+        
+        <div class="action-buttons">
+          <button class="btn btn-secondary" onclick="showForecast('${location.name}', ${location.lat}, ${location.lon}, 1)">
+            📅 Mañ
+          </button>
+          <button class="btn btn-secondary" onclick="showForecast('${location.name}', ${location.lat}, ${location.lon}, 2)">
+            📅 PM
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ========== RENDER ERROR CARD ========== */
+function renderErrorCard(location, error) {
+  return `
+    <div class="card">
+      <div class="card-header">
+        <h2 class="location-name">📍 ${location.name}</h2>
+      </div>
+      <div class="card-body">
+        <div class="error-message">
+          ⚠️ Error al cargar datos<br>
+          <small>${error.message}</small>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ========== SHOW FORECAST MODAL ========== */
+window.showForecast = async function(locationName, lat, lon, daysAhead) {
+  const overlay = document.getElementById('forecastOverlay');
+  const now = new Date();
+  const targetDate = new Date(now);
+  targetDate.setDate(targetDate.getDate() + daysAhead);
+  targetDate.setHours(now.getHours(), now.getMinutes(), 0, 0);
+  
+  const dayLabel = daysAhead === 1 ? 'Mañana' : 'Pasado Mañana';
+  const dateStr = targetDate.toLocaleDateString('es-ES', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric'
+  });
+  const timeStr = targetDate.toLocaleTimeString('es-ES', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+  
+  overlay.innerHTML = `
+    <div class="forecast-modal">
+      <div class="forecast-header">
+        <h3 class="forecast-title">📅 ${dayLabel} - ${locationName}</h3>
+        <button class="close-btn" onclick="closeForecast()">×</button>
+      </div>
+      <div class="forecast-body">
+        <div class="loading">
+          <div class="spinner"></div>
+          <span>Cargando pronóstico...</span>
+        </div>
+      </div>
+    </div>
+  `;
+  overlay.style.display = 'flex';
+  
+  try {
+    const weather = await fetchWeatherData(lat, lon, targetDate);
+    const thermal = getThermalComment(weather.feelsLike);
+    
+    const bodyContent = `
+      <div style="text-align:center;margin-bottom:16px;padding:12px;background:#0a1328;border-radius:10px">
+        <div style="font-size:14px;color:var(--muted)">${dateStr}</div>
+        <div style="font-size:18px;font-weight:700;color:#6ae3ff;margin-top:4px">${timeStr}</div>
+      </div>
+      
+      <div class="weather-main">
+        <div class="weather-icon">${weather.icon}</div>
+        <div class="weather-info">
+          <p class="weather-desc">${weather.description}</p>
+          <span class="thermal-badge" style="background:${thermal.color}">${thermal.text}</span>
+        </div>
+      </div>
+      
+      <div class="temp-grid">
+        <div class="temp-box">
+          <div class="temp-label">Temperatura</div>
+          <div class="temp-value">${weather.temperature}°C</div>
+        </div>
+        <div class="temp-box">
+          <div class="temp-label">Sensación</div>
+          <div class="temp-value feels">${weather.feelsLike}°C</div>
+        </div>
+        <div class="temp-box">
+          <div class="temp-label">Lluvia</div>
+          <div class="temp-value rain">${weather.precipitationProbability}%</div>
+        </div>
+      </div>
+      
+      <div class="details-grid">
+        <div class="detail-item">
+          <div class="detail-label">Humedad</div>
+          <div class="detail-value">${weather.humidity}%</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Viento</div>
+          <div class="detail-value">${weather.windSpeed} km/h</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Presión</div>
+          <div class="detail-value">${weather.pressure} hPa</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">UV</div>
+          <div class="detail-value">${weather.uvIndex ?? 'N/A'}</div>
+        </div>
+      </div>
+      
+      <div style="margin-top:16px;padding:12px;background:#0a1328;border-radius:10px;font-size:12px;color:var(--muted);text-align:center">
+        📍 ${locationName}<br>
+        Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)}
+      </div>
+    `;
+    
+    document.querySelector('.forecast-body').innerHTML = bodyContent;
+  } catch (error) {
+    document.querySelector('.forecast-body').innerHTML = `
+      <div class="error-message">
+        ⚠️ Error al cargar el pronóstico<br>
+        <small>${error.message}</small>
+      </div>
+    `;
+  }
+};
+
+window.closeForecast = function() {
+  document.getElementById('forecastOverlay').style.display = 'none';
+};
+
+// Cerrar modal al hacer click fuera
+document.addEventListener('click', (e) => {
+  const overlay = document.getElementById('forecastOverlay');
+  if (e.target === overlay) {
+    closeForecast();
+  }
+});
+
+/* ========== INITIALIZE APP ========== */
+async function loadWeatherData(targetDate) {
+  const grid = document.getElementById('weatherGrid');
+  
+  // Mostrar tarjetas de carga
+  grid.innerHTML = LOCATIONS.map(loc => `
+    <div class="card">
+      <div class="card-header">
+        <h2 class="location-name">📍 ${loc.name}</h2>
+      </div>
+      <div class="card-body">
+        <div class="loading">
+          <div class="spinner"></div>
+          <span>Cargando...</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  
+  // Cargar datos de cada ubicación
+  const cards = [];
+  for (const location of LOCATIONS) {
+    try {
+      const weather = await fetchWeatherData(location.lat, location.lon, targetDate);
+      cards.push(renderWeatherCard(location, weather, targetDate));
+    } catch (error) {
+      console.error(`Error loading ${location.name}:`, error);
+      cards.push(renderErrorCard(location, error));
+    }
+  }
+  
+  grid.innerHTML = cards.join('');
+}
+
+async function initApp() {
+  const now = new Date();
+  const dateTimeStr = now.toLocaleString('es-ES', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+  document.getElementById('currentDateTime').textContent = `📅 ${dateTimeStr}`;
+  
+  await loadWeatherData(now);
+}
+
+// Iniciar app al cargar
+document.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>
